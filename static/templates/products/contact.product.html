@@ -1,0 +1,25 @@
+<form class="form-horizontal contact-form" name="contactForm">
+	<div ng-repeat="field in fields" class="form-group">
+    	<label for="{{field.id}}" class="col-sm-3 col-lg-2 control-label">{{field.name}}</label>
+        <div class="col-sm-9 col-lg-10">
+          <input ng-if="field.type == 'email'" type="email" required="{{field.required}}" ng-model="contactDetails[field.id]" class="form-control" id="{{field.id}}" name="{{field.id}}" >
+          <input ng-if="field.type == 'text'" type="text" required="{{field.required}}" ng-model="contactDetails[field.id]" class="form-control" id="{{field.id}}" name="{{field.id}}" >
+          <textarea ng-if="field.type == 'textarea'" required="{{field.required}}" ng-model="contactDetails[field.id]" class="form-control" id="{{field.id}}" name="{{field.id}}" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-3 col-lg-offset-2 col-xs-4 col-sm-3 col-lg-3">
+ 			<button type="submit" class="btn btn-primary gradient">{{submitTitle}}</button>
+        </div>
+        <div class="col-xs-8 col-sm-6 col-lg-7 submit-complete">
+        	<div class="media">
+           		<div class="media-left">
+                	<img src="/static/characters/landon.png" width="48" alt="" title="">
+              	</div>
+              	<div class="media-body">
+             		<h4 class="media-heading"></h4>
+              	</div>
+            </div>
+        </div>
+ 	</div>
+</form>

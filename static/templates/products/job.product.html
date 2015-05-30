@@ -1,0 +1,8 @@
+<div class="job-container">
+	<h2>{{company}}</h2>
+    <h3>{{jobTitle}}, {{jobDate}}</h3>
+    
+    <ul class="fa-ul">
+    	<li ng-repeat="jobItem in jobItems" class="product-list"><i class="fa-li fa fa-{{jobItemIcon}}"></i>{{jobItem}}</li>
+    </ul>
+</div>

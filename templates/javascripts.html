@@ -1,0 +1,37 @@
+{% load compress %}
+{% load staticfiles %}
+
+{% compress js %}
+<script type="text/javascript" src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/utils/detectmobile.jquery.js' %}"></script>
+<script type="text/javascript" src="{% static 'bower_components/jquery-ui/jquery-ui.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'bower_components/angular/angular.js' %}"></script>
+<script type="text/javascript" src="{% static 'bower_components/angular-resource/angular-resource.js' %}"></script>
+<script type="text/javascript" src="{% static 'bower_components/angular-route/angular-route.js' %}"></script>
+<script type="text/javascript" src="{% static 'bower_components/angular-cookies/angular-cookies.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'javascripts/salesfiction.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'javascripts/salesfiction.config.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/salesfiction.routes.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/layout/layout.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/layout/controllers/index.controller.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/layout/services/index.service.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/stories/stories.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/stories/services/stories.service.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/scripts/scripts.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/scripts/services/scripts.service.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/layout/directives/dropdown.scripts.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/scripts/directives/scripts.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/scripts/directives/single.script.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/products.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/single.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/job.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/skill.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/about.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/work.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/portfolio.product.directive.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascripts/products/directives/contact.product.directive.js' %}"></script>
+{% endcompress %}

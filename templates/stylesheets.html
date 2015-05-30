@@ -1,0 +1,10 @@
+{% load compress %}
+{% load staticfiles %}
+
+<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+{% compress css %}
+<link rel="stylesheet" type="text/css" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.css' %}" media="all" />
+<link rel="stylesheet" type="text/css" href="{% static 'stylesheets/styles.css' %}" />
+{% endcompress %}
+<link href='http://fonts.googleapis.com/css?family=Lato:400,900|Lobster' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">

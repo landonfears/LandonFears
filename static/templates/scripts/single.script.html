@@ -1,0 +1,16 @@
+<div class="script-content">
+	<div id="{{slug}}" class="anchor"></div>
+    <div class="col-xs-12 col-md-4 product-content" ng-class="{true: 'col-md-push-8', false: ''}[even == true]"><single-product product="script.script.product"></single-product></div>
+    <div class="col-xs-12 col-md-8 lines-content" ng-class="{true: 'col-md-pull-4', false: ''}[even == true]">
+    	<div class="row script-row" ng-repeat="line in script.script.lines">
+            <div ng-if="$even" class="line line-left">
+                <div class="col-xs-3 line-character"><img src="{{line.mood.mood_face || line.mood.character.character_face}}" class="img-responsive img-circle" alt="{{line.mood.character.character_name}}" title="{{line.mood.character.character_name}}"></div>
+                <div class="col-xs-9 line-text">{{line.text}}</div>
+          	</div>
+            <div ng-if="$odd" class="line line-right">
+                <div class="col-xs-9 line-text">{{line.text}}</div>
+                <div class="col-xs-3 line-character"><img src="{{line.mood.mood_face || line.mood.character.character_face}}" class="img-responsive img-circle" alt="{{line.mood.character.character_name}}" title="{{line.mood.character.character_name}}"></div>
+          	</div>
+        </div>
+    </div>
+</div>

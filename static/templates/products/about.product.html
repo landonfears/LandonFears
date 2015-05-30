@@ -1,0 +1,10 @@
+<div class="about-container">
+	<ul class="fa-ul">
+    	<li ng-repeat="aboutItem in aboutItems" class="product-list"><i class="fa-li fa fa-{{aboutItemIcon}}"></i>{{aboutItem}}</li>
+    </ul>
+    <div class="container-fluid social-container">
+  		<div ng-repeat="item in social" class="social-item" class="row">
+   	 		<div class="col-xs-{{socialNum}}"><a href="{{item.url}}" target="_blank"><i class="fa fa-{{item.icon}} fa-5x"></i></a></div>
+     	</div>
+  	</div>
+</div>

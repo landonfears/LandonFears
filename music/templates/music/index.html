@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Song Creator by Landon Fears</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--link rel="stylesheet" type="text/css" href="{% static 'music/style.css' %}" /-->
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        <style>
+			i.icon-remove {margin-left:10px; cursor:pointer;}
+			li input {padding:4px;}
+			li:not(.active) input {border:1px solid transparent; background-color: transparent; cursor:pointer;}
+			li.active input {border:1px solid #dddddd;}
+			.tab-pane button {margin-top:20px;}
+			.add-chord {margin-right:20px;}
+			.row {margin-top:20px; margin-bottom:8px;}
+			.row-chord a:hover {text-decoration:none;}
+			.row-chord .col-sm-1 a i.icon-remove {line-height:45px;}
+		</style>
+    </head>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.min.js' %}"></script>        
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="{% static 'music/json2.js' %}"></script>
+    <script type="text/javascript" src="{% static 'music/underscore.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'music/backbone.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'music/listen-for-change.js' %}"></script>
+    <script type="text/javascript" src="{% static 'music/audiolet.js' %}"></script>
+    <!--script type="text/javascript" src="{% static 'music/song.js' %}"></script-->
+    <script>
+	
+	$(document).ready(function(){
+		(function($){
+			Backbone.sync = function(method, model, success, error){
+				success();
+			}
+	  		var maxSongs = 5, maxChords = 10;
+			var keys = [
+				{id: 'c', html: 'C'},
+				{id: 'cs', html: 'C&#9839;'},
+				{id: 'd', html: 'D'},
+				{id: 'ef', html: 'E&#9837;'},
+				{id: 'e', html: 'E'},
+				{id: 'f', html: 'F'},
+				{id: 'fs', html: 'F&#9839;'},
+				{id: 'g', html: 'G'},
+				{id: 'af', html: 'A&#9837;'},
+				{id: 'a', html: 'A'},
+				{id: 'bf', html: 'B&#9837;'},
+				{id: 'b', html: 'B'}
+			];
+			var freqs = { c: 16.35, cs: 17.32, d: 18.35, ef: 19.45, e: 20.60, f: 21.83, fs: 23.12, g: 24.50, af: 25.96, a: 27.50, bf: 29.14, b: 30.87};
+			var keytypes = [
+				{id: 'maj', html: 'Maj'},
+				{id: 'min', html: 'Min'}
+			];
+			
+			var Item = Backbone.Model.extend({
+				defaults: {
+					song_name: '',
+					song_id: 0,
+					chords: []
+				}
+			});
+			
+			var List = Backbone.Collection.extend({
+				model: Item
+			});
+			
+			var ChordView = Backbone.View.extend({
+				events: {
+					'click i.icon-remove': 'remove',
+					'click .btn': 'updateKey',
+				},
+				initialize: function(){
+					_.bindAll(this, 'render', 'remove', 'updateKey');
+				},
+				render: function(){
+					return this;
+				},
+				remove: function(e){
+					e.preventDefault();
+					
+					var cid = parseInt($(this.el).attr('id').replace('chord',''));
+					
+					var song = this;
+					
+					var rc = song.model.get('chords');
+					delete rc[cid];
+					
+					// Remove this from the database
+					$.ajax({
+						url: '/api2/v1/chord/'+cid+'/',
+						type: 'DELETE',
+						contentType: 'application/json',
+						dataType: 'json',
+						processData: false,
+						success: function(data){
+							$('#chord'+cid).remove();
+							
+							var numChords = $('#song'+song.model.get('song_id')+' .row-chord').length;
+							if(numChords >= maxChords) {
+								$('#song'+song.model.get('song_id')+' .add-chord').prop('disabled', true);
+							}
+							else $('#song'+song.model.get('song_id')+' .add-chord').prop('disabled', false);
+						},
+						error: function(jqXHR, textStatus){
+							//console.dir(jqXHR);
+							console.log('there was an error '+textStatus);
+						}
+					});
+				},
+				updateKey: function(e){
+					var $target = $(e.target);
+					var keysel = '', keytypesel = '';
+					
+					
+					if($target.parent().hasClass('btn-key')){
+						if($target.attr('id') == $('.btn-key label.active', this.el).attr('id')) {
+							return;
+						}
+						keysel = $target.attr('id').replace('-key','');
+						keytypesel = $('.btn-keytype label.active', this.el).attr('id');
+					}
+					else {
+						if($target.attr('id') == $('.btn-keytype label.active', this.el).attr('id')) {
+							return;
+						}
+						keysel = $('.btn-key label.active', this.el).attr('id').replace('-key','');
+						keytypesel = $target.attr('id');
+					}
+					var cid = parseInt($(this.el).attr('id').replace('chord',''));
+					var cname = keysel+':'+keytypesel;
+					
+					var chord = JSON.stringify({
+						"id": cid,
+						"chord_name": cname,
+					});
+					var song = this;
+					$.ajax({
+						url: '/api2/v1/chord/'+cid+'/',
+						type: 'PUT',
+						contentType: 'application/json',
+						data: chord,
+						dataType: 'json',
+						processData: false,
+						success: function(data){
+							//console.log(data);
+							
+							// update in the model
+							song.model.get('chords')[cid].cname = cname;
+						},
+						error: function(jqXHR, textStatus){
+							//console.dir(jqXHR);
+							console.log('there was an error '+textStatus);
+						}
+					});
+					// get values of key and keytype and save to db
+					
+				}
+			});
+			
+			var SongView = Backbone.View.extend({
+				events: {
+					'click .add-chord': 'addChord',
+					'click .play-song': 'playSong',
+				},
+				initialize: function(){
+					_.bindAll(this, 'render', 'playSong', 'addChord', 'appendChord');
+				},
+				render: function(){
+					
+					// Add chords to tab content area
+					var chords = this.model.get('chords');
+					//console.dir(chords);
+					var song = this;
+					$.each(chords, function(cindex, cvalue){
+						song.appendChord(cindex);
+					});
+				},
+				playSong: function(e){
+					e.preventDefault();
+					var song = this;
+					
+					//Build chords and frequencies before entering synth class
+					var songData = {
+						chords: [],
+						freqs: [],
+						keys: []
+					};
+					var chordCount = 0;
+					$.each(this.model.get('chords'), function(cid, cval){
+						var keyArr = (cval.cname).split(':');
+						songData.keys.push(keyArr[1]);
+						songData.freqs.push(freqs[keyArr[0]]);
+						songData.chords.push([0,2,4]);
+					});
+					console.log('songdata', songData);
+					var songDataCount = songData.chords.length;
+					if(songDataCount) $(e.target).prop('disabled', true);
+					
+					var Synth = function(audiolet, frequency) {
+						AudioletGroup.call(this, audiolet, 0, 1);
+						// Basic wave
+						this.saw = new Saw(audiolet, frequency);
+				
+						// Gain envelope
+						this.gain = new Gain(audiolet);
+						this.env = new PercussiveEnvelope(audiolet, 1, 0.1, 2.2,
+							function() {
+								this.audiolet.scheduler.addRelative(0, this.remove.bind(this));
+							}.bind(this)
+						);
+						this.envMulAdd = new MulAdd(audiolet, 0.3, 0);
+				
+						// Main signal path
+						this.saw.connect(this.gain);
+						this.gain.connect(this.outputs[0]);
+				
+						// Envelope
+						this.env.connect(this.envMulAdd);
+						this.envMulAdd.connect(this.gain, 0, 1);
+					};
+					extend(Synth, AudioletGroup);
+					//this.audioletApp = new AudioletApp();
+					
+					var SchedulerApp = function() {
+					
+						this.audiolet = new Audiolet();
+				
+						this.majScale = new MajorScale();
+						this.minScale = new MinorScale();
+				
+						// I IV V progression
+						var chordPattern = new PSequence(songData.chords);
+						// Play the progression
+						this.audiolet.scheduler.play([chordPattern], 4,
+													 this.playChord.bind(this));
+						
+					};
+					SchedulerApp.prototype.playChord = function(chord) {
+						for (var i = 0; i < chord.length; i++) {
+							var degree = chord[i];
+							var theScale = (songData.keys[chordCount] == 'maj') ? this.majScale : this.minScale;
+							var frequency = theScale.getFrequency(degree, songData.freqs[chordCount], 3);
+							var synth = new Synth(this.audiolet, frequency);
+							synth.connect(this.audiolet.output);
+						}
+						chordCount++;
+						
+						var percent = Math.round( (chordCount / songDataCount) * 100 );
+						$('#song'+song.model.get('song_id')+' .progress-bar').width(percent+'%').attr('aria-valuenow',percent);
+						if(percent == 100) {
+							setTimeout(function(){
+								$('#song'+song.model.get('song_id')+' .progress-bar').width(0+'%').attr('aria-valuenow',0);
+								$(e.target).prop('disabled', false);
+							},1000);
+						}
+					};
+				
+					var app = new SchedulerApp();
+				},
+				appendChord: function(chordIndex){
+					var chordArr = this.model.get('chords');
+					var chordData = chordArr[chordIndex];
+					
+					var contentHTML = '<div class="row row-chord" id="chord'+chordData.cid+'">';
+					var ckeya = chordData.cname.split(':');
+					var ckey = ckeya[0].toLowerCase();
+					var ckeytype = ckeya[1].toLowerCase();
+				
+					contentHTML += '<div class="col-sm-8">';
+					contentHTML += '<div class="btn-group btn-key" data-toggle="buttons">';
+					$.each(keys, function(index, value){
+						var atxt = (value.id == ckey) ? 'active' : '';
+						contentHTML += '<label class="btn btn-lg btn-default '+atxt+'" id="'+value.id+'-key"><input type="radio" name="key"> '+value.html+'</label>';
+						
+					});
+					contentHTML += '</div>';
+					contentHTML += '</div>';
+					
+					
+					contentHTML += '<div class="col-sm-3">';
+					contentHTML += '<div class="btn-group btn-keytype" data-toggle="buttons">';
+					$.each(keytypes, function(index, value){
+						var atxt = (value.id == ckeytype) ? 'active' : '';
+						contentHTML += '<label class="btn btn-lg btn-default '+atxt+'" id="'+value.id+'"><input type="radio" name="keytype"> '+value.html+'</label>';
+						
+					});
+					contentHTML += '</div>';
+					contentHTML += '</div>';
+					
+					contentHTML += '<div class="col-sm-1">';
+					contentHTML += '<a href="#"><i class="icon-remove icon-large"></i></a>';
+					contentHTML += '</div>';
+					contentHTML += '</div>';
+					
+					$(this.el).append(contentHTML);
+					var chordView = new ChordView({
+						el: $('#chord'+chordData.cid),
+						model: this.model
+					});
+					
+					var numChords = $('#song'+this.model.get('song_id')+' .row-chord').length;
+					if(numChords >= maxChords) {
+						$('#song'+this.model.get('song_id')+' .add-chord').prop('disabled', true);
+					}
+					else $('#song'+this.model.get('song_id')+' .add-chord').prop('disabled', false);
+				},
+				addChord: function(e){
+					e.preventDefault();
+					
+					// Add chord in database and and render in html
+					chord = JSON.stringify({
+						'chord_name': 'c:maj',
+						'order': '0',
+						'song': '/api2/v1/song/'+this.model.get('song_id')+'/'
+					});
+					var song = this;
+					$.ajax({
+						url: '/api2/v1/chord/',
+						type: 'POST',
+						contentType: 'application/json',
+						data: chord,
+						dataType: 'json',
+						processData: false,
+						success: function(data){
+							//console.log(data);
+							var chords = song.model.get('chords');
+							//console.log('added chord.');
+							chords[data.id] = { cname: data.chord_name, cid: data.id, sid: song.model.get('song_id'), order: data.order }; 
+							//this.model.set('chords', chords);
+							song.appendChord(data.id);
+						},
+						error: function(jqXHR, textStatus){
+							//console.dir(jqXHR);
+							console.log('there was an error '+textStatus);
+						}
+					});
+				}
+			}); 
+			
+			var ItemView = Backbone.View.extend({
+				tagName: 'li',
+				
+				events: {
+					'click i.icon-remove': 'remove',
+					'click a.tab': 'switchTab',
+					'keyup input': 'inputChange'
+				}, 
+		
+				initialize: function(){
+					_.bindAll(this, 'render', 'unrender', 'switchTab', 'remove', 'inputChange');
+					this.currIndex = 0;
+					
+					this.model.bind('change', this.render);
+					this.model.bind('remove', this.unrender);
+				},
+				render: function(){
+					$(this.el).html('<a href="#song'+this.model.get('song_id')+'" data-index="'+this.model.get('song_id')+'" class="tab" data-toggle="tab" id="tab'+this.model.get('song_id')+'"><input type="text" value="'+this.model.get('song_name')+'"><i class="icon-remove"></i></a>');
+					
+					this.currIndex = this.model.get('song_id');
+					return this; // for chainable calls, like .render().el
+				},
+				unrender: function(){
+					$(this.el).remove();
+				},
+				switchTab: function(e){
+					e.preventDefault();
+  					$('a.tab', this.el).tab('show');
+					this.currIndex = $('a.tab', this.el).attr('data-index');
+				},
+				inputChange: function(e){
+					var index = this.currIndex;
+					
+					// Save while the input value is changing
+					//var date = new Date();
+					song = JSON.stringify({
+						"name": $(e.target).val(),
+					});
+					$.ajax({
+						url: '/api2/v1/song/'+index+'/',
+						type: 'PUT',
+						contentType: 'application/json',
+						data: song,
+						dataType: 'json',
+						processData: false,
+						success: function(data){
+							//console.log(data);
+						},
+						error: function(jqXHR, textStatus){
+							//console.dir(jqXHR);
+							console.log('there was an error '+textStatus);
+						}
+					});
+				},
+				remove: function(e){
+					e.preventDefault();
+					
+					var index = this.currIndex;
+					
+					// Remove this from the database
+					$.ajax({
+						url: '/api2/v1/song/'+index+'/',
+						type: 'DELETE',
+						contentType: 'application/json',
+						//data: song,
+						dataType: 'json',
+						processData: false,
+						success: function(data){
+							//console.log(data);
+						},
+						error: function(jqXHR, textStatus){
+							//console.dir(jqXHR);
+							console.log('there was an error '+textStatus);
+						}
+					});
+					
+					$('#tab'+index).remove();
+					$('#song'+index).remove();
+					this.model.destroy();
+					
+					if($(this.el).hasClass('active') && $('ul.nav li').length) {
+						// Show the tab for the last link left
+						$('ul.nav li').last().find('a.tab').tab('show');
+						this.currIndex = $('ul.nav li').last().find('a.tab').attr('data-index');
+					}
+					
+					var numSongs = $('ul.nav li').length;
+					if(numSongs >= maxSongs) {
+						$('#add').prop('disabled', true);
+					}
+					else $('#add').prop('disabled', false);
+					
+				}
+			});
+			
+			var ListView = Backbone.View.extend({
+				el: $('.container'), // attaches `this.el` to an existing element.
+				//className: $('.span12'),
+				events: {
+					'click button#add': 'addItem'
+				},
+				initialize: function(){
+					_.bindAll(this, 'render', 'addItem', 'appendItem'); // fixes loss of context for 'this' within methods
+		
+					this.collection = new List();
+					this.collection.bind('add', this.appendItem);
+					
+					this.counter = 0;
+					this.maxSongs = 5;
+					this.render(); // not all views are self-rendering. This one is.
+				},
+			
+				render: function(){
+					var self = this;
+					$(this.el).append("<button type='button' class='btn btn-lg btn-primary' id='add'>Add Song</button>");
+					$(this.el).append("<ul class='nav nav-tabs' style='margin-top:15px;'></ul>");
+					$(this.el).append("<div class='tab-content'></div>");
+					
+
+					// Build existing songs
+					{% if latest_song_list %}
+						var itemView;
+						var sname = '', sid = 0;
+						{% for song in latest_song_list %}
+							sname = '{{ song.name }}';
+							sid = {{ song.id }};
+							var chords = {};
+							{% for chord in song.chord_set.all %}
+								chords[{{ chord.id }}] ={ cname: '{{ chord.chord_name }}', cid: {{ chord.id }}, sid: {{ chord.song_id }}, order: {{ chord.order }} }; 
+								//console.log('{{ chord.chord_name }}');
+							{% endfor %}
+							this.addItem(sname, sid, chords);
+							
+						{% endfor %}
+					{% endif %}
+					
+					/*
+					_(this.collection.models).each(function(item){
+						self.appendItem(item);
+					}, this);
+					*/
+				},
+				
+				addItem: function(sname, sid, chords){
+					var item = new Item();
+					var songItem = this;
+					
+					var newSong = (typeof sname !== 'string' || typeof sid !== 'number') ? true : false; 
+					var song;
+					if(newSong){
+						var date = new Date();
+						song = JSON.stringify({
+							"name": "Sample Song",
+							"pub_date": date.toUTCString()
+						});
+						$.ajax({
+							url: '/api2/v1/song/',
+							type: 'POST',
+							contentType: 'application/json',
+							data: song,
+							dataType: 'json',
+							processData: false,
+							success: function(data){
+								song = {
+									song_name: data.name,
+									song_id: data.id,
+									chords: {}
+								}
+								item.set(song);
+								songItem.collection.add(item);
+							},
+							error: function(jqXHR, textStatus){
+								//console.dir(jqXHR);
+								console.log('there was an error '+textStatus);
+							}
+						});
+					}
+					else {
+						song = {
+							song_name: sname,
+							song_id: sid,
+							chords: chords
+						};
+						item.set(song);
+						this.collection.add(item);
+					}
+				},
+				
+				appendItem: function(item){
+					var itemView = new ItemView({
+						model: item
+					});
+					$('ul.nav', this.el).append(itemView.render().el);
+					
+					
+					
+					var contentHTML = '<div class="tab-pane" id="song'+item.get('song_id')+'"></div>';
+					
+					$('div.tab-content', this.el).append(contentHTML);
+					
+					var songView = new SongView({
+						el: $('#song'+item.get('song_id')),
+						model: item
+					});
+					
+					var contentHTML = '<p><button type="button" class="btn btn-lg btn-info add-chord">Add Chord</button><button type="button" class="btn btn-lg btn-success play-song"><i class="icon-white icon-music"></i> Play Song</button> <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span class="sr-only"></span></div></div></p>';
+					
+					$('#song'+item.get('song_id'), this.el).append(contentHTML);
+					songView.render();
+					
+					// Show this tab
+					$('#tab'+item.get('song_id')).tab('show');
+					
+					$('#tab'+item.get('song_id')+' input').listenForChange();
+					
+					var numSongs = $('ul.nav li').length;
+					if(numSongs >= maxSongs) {
+						$('#add').prop('disabled', true);
+					}
+					else $('#add').prop('disabled', false);
+				}
+			});
+		
+			var listView = new ListView();
+		})(jQuery);
+	});
+	</script>
+    <body role="document">
+
+
+    <div class="container theme-showcase" role="main">
+		<div class="page-header">
+        	<h1>Song Creator</h1>
+            <p>Technologies/Frameworks Used: Django, Tastypie REST API, Python, PostgreSQL, Bootstrap, Backbone.js, jQuery, Audiolet.js (for sound generation)</p>
+            <p>How to use: "Add Song" creates a tab that you can edit with the song name. "Add Chord" let's you add a key and major/minor chord. "Play Song" will play each chord you created.</p>
+      	</div>
+        
+    </div> <!-- /container -->
+</body>
+</html>
+
+

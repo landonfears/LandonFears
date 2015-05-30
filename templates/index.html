@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html ng-app="salesfiction">
+    <head>
+        <title>Landon Fears: Front End Web Engineer</title>
+    
+        <base href="/" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      	
+        {% include 'stylesheets.html' %}
+    </head>
+    
+    <body ng-controller="IndexController">
+        {% include 'navbar.html' %}
+    
+    	<dom-loaded></dom-loaded>
+        <scripts scripts="stories[0].scripts" ng-show="stories.length && stories[0].scripts.length"></scripts>
+    
+    	<span class="affix-breakpoint"></span>
+        {% include 'javascripts.html' %}
+    </body>
+</html>

@@ -1,0 +1,12 @@
+<div class="col-xs-4 portfolio-item">
+	<div class="portfolio-info">
+        <img src="{{image}}" class="img-responsive img-circle center-block" alt="{{name}}" title="{{name}}">
+        <div class="portfolio-overlay">
+            <p class="portfolio-name">{{name}}</p>
+            <p class="portfolio-tech">{{tech}}</p>
+        </div>
+    </div>
+    <p class="portfolio-links">
+    	<a ng-repeat="link in links" href="{{link.url}}" target="_blank" title="{{link.type}}"><i class="fa fa-{{link.icon}}"></i></a>
+    </p>
+</div>

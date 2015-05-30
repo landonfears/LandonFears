@@ -1,0 +1,20 @@
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+	<div class="container container-large">
+  		<div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            <img src="/static/characters/landon.png" class="brand-logo img-circle text-center">
+          </a>
+        </div>
+        <ul class="nav navbar-nav navbar-right nav-header nav-content" ng-show="stories.length && stories[0].scripts.length">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span ng-bind="stories[0].story_name" ng-cloak></span> <b class="caret"></b></a>
+                <dropdown-scripts scripts="stories[0].scripts"></dropdown-scripts>
+            </li>
+        </ul>
+        <div class="collapse navbar-collapse" id="lf-navbar-collapse-1">
+        	<ul class="nav navbar-nav">
+            	<li><a href="#">Landon Fears: Front End Web Engineer</a></li>
+          	</ul>
+    	</div><!-- /.navbar-collapse -->
+  	</div> <!-- /.container -->
+</nav>

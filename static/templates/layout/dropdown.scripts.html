@@ -1,0 +1,5 @@
+<ul class="dropdown-menu">
+	<li ng-repeat="script in scripts">
+    	<a ng-if="script.script.script_name !== undefined" ng-href="{{prettyUrl(script.script.script_name)}}" ng-click="activateScriptLink($event)">{{script.script.script_name}}</a>
+    </li>
+</ul>
